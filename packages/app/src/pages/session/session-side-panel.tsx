@@ -35,7 +35,7 @@ import { SessionContextUsage } from "@/components/session-context-usage"
 const reviewTabID = "session-side-panel-review-tab"
 const reviewTabPanelID = "session-side-panel-review-tabpanel"
 const fileBrowserTabPanelID = "session-side-panel-file-browser-tabpanel"
-import { SessionContextTab, SortableTab, SortableTabV2, FileVisual } from "@/components/session"
+import { SessionContextTab, SessionSubagentsTab, SortableTab, SortableTabV2, FileVisual } from "@/components/session"
 import { OpenInAppV2 } from "@/components/session/open-in-app-v2"
 import { useCommand } from "@/context/command"
 import { useFile, type SelectedLineRange } from "@/context/file"
@@ -238,7 +238,7 @@ export function SessionSidePanel(props: {
   })
   const fileBrowserVisible = createMemo(() => {
     const active = activeTab()
-    return active !== "review" && active !== "context" && active !== "empty"
+    return active !== "review" && active !== "context" && active !== "subagents" && active !== "empty"
   })
   const openFileKeybind = createMemo(() => command.keybindParts("file.open"))
   const closeTabKeybind = createMemo(() => command.keybindParts("tab.close"))
@@ -391,8 +391,16 @@ export function SessionSidePanel(props: {
                                   </div>
                                 </Tabs.Trigger>
                               </Show>
+                              <Tabs.Trigger value="subagents">
+                                <div class="flex items-center gap-1.5">
+                                  <span>{language.locale() === "br" ? "Subagentes" : "Subagents"}</span>
+                                </div>
+                              </Tabs.Trigger>
                               <SortableProvider ids={openedTabs()}>
-                                <For each={panelTabs()}>
+                                <Tabs.Trigger value="subagents">
+                              <span>{language.locale() === "br" ? "Subagentes" : "Subagents"}</span>
+                            </Tabs.Trigger>
+                            <For each={panelTabs()}>
                                   {(tab) => (
                                     <Show
                                       when={tab === SESSION_OPEN_FILE_TAB}
@@ -495,6 +503,12 @@ export function SessionSidePanel(props: {
                               <div class="relative pt-2 flex-1 min-h-0 overflow-hidden">
                                 <SessionContextTab />
                               </div>
+                            </Tabs.Content>
+                          </Show>
+
+                          <Show when={activeTab() === "subagents"}>
+                            <Tabs.Content value="subagents" class="flex flex-col h-full overflow-hidden contain-strict">
+                              <SessionSubagentsTab />
                             </Tabs.Content>
                           </Show>
 
@@ -723,6 +737,12 @@ export function SessionSidePanel(props: {
                             <div class="relative pt-2 flex-1 min-h-0 overflow-hidden">
                               <SessionContextTab />
                             </div>
+                          </Tabs.Content>
+                        </Show>
+
+                        <Show when={activeTab() === "subagents"}>
+                          <Tabs.Content value="subagents" class="flex flex-col h-full overflow-hidden contain-strict">
+                            <SessionSubagentsTab />
                           </Tabs.Content>
                         </Show>
 
