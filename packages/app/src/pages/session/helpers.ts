@@ -32,7 +32,10 @@ export const createSessionTabs = (input: TabsInput) => {
   const review = input.review ?? (() => false)
   const hasReview = input.hasReview ?? (() => false)
   const fileBrowser = input.fileBrowser ?? (() => false)
-  const contextOpen = createMemo(() => input.tabs().active() === "context" || input.tabs().all().includes("context"))\n  const subagentsOpen = createMemo(() => input.tabs().active() === "subagents" || input.tabs().all().includes("subagents"))
+  const contextOpen = createMemo(() => input.tabs().active() === "context" || input.tabs().all().includes("context"))
+  const subagentsOpen = createMemo(
+    () => input.tabs().active() === "subagents" || input.tabs().all().includes("subagents"),
+  )
   const openFileOpen = createMemo(
     () =>
       fileBrowser() &&
@@ -68,7 +71,8 @@ export const createSessionTabs = (input: TabsInput) => {
 
     const first = openedTabs()[0]
     if (first) return first
-    if (subagentsOpen()) return "subagents"\n    if (contextOpen()) return "context"
+    if (subagentsOpen()) return "subagents"
+    if (contextOpen()) return "context"
     if (review() && hasReview()) return "review"
     return "empty"
   })
@@ -87,6 +91,7 @@ export const createSessionTabs = (input: TabsInput) => {
 
   return {
     contextOpen,
+    subagentsOpen,
     openFileOpen,
     panelTabs,
     openedTabs,
