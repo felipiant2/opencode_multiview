@@ -397,10 +397,7 @@ export function SessionSidePanel(props: {
                                 </div>
                               </Tabs.Trigger>
                               <SortableProvider ids={openedTabs()}>
-                                <Tabs.Trigger value="subagents">
-                              <span>{language.locale() === "br" ? "Subagentes" : "Subagents"}</span>
-                            </Tabs.Trigger>
-                            <For each={panelTabs()}>
+                                <For each={panelTabs()}>
                                   {(tab) => (
                                     <Show
                                       when={tab === SESSION_OPEN_FILE_TAB}
@@ -619,6 +616,9 @@ export function SessionSidePanel(props: {
                                 </div>
                               </Tabs.Trigger>
                             </Show>
+                            <Tabs.Trigger value="subagents">
+                              <span>{language.locale() === "br" ? "Subagentes" : "Subagents"}</span>
+                            </Tabs.Trigger>
                             <For each={panelTabs()}>
                               {(tab) => (
                                 <Show
