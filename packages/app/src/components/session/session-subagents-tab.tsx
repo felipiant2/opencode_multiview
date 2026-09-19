@@ -5,7 +5,7 @@ import { ScrollView } from "@opencode-ai/ui/scroll-view"
 import { useLanguage } from "@/context/language"
 import { useServerSync } from "@/context/server-sync"
 import { useSessionLayout } from "@/pages/session/session-layout"
-import { createSessionSubagents, sessionModelLabel } from "@/pages/session/subagents"
+import { createSessionSubagents, sessionModelLabel, sessionTokenTotal } from "@/pages/session/subagents"
 
 function localeText(locale: string, br: string, en: string) {
   return locale === "br" ? br : en
@@ -31,11 +31,11 @@ function statusLabel(locale: string, status: "idle" | "busy" | "retry") {
   if (locale === "br") {
     if (status === "busy") return "executando"
     if (status === "retry") return "tentando novamente"
-    return "finalizado"
+    return "ocioso"
   }
   if (status === "busy") return "running"
   if (status === "retry") return "retrying"
-  return "finished"
+  return "idle"
 }
 
 function ToolPartView(props: { part: Extract<Part, { type: "tool" }> }) {
@@ -160,7 +160,13 @@ export function SessionSubagentsTab() {
               </div>
             </Show>
 
-            <Show when={!subagents.loading() && subagents.items().length === 0}>
+            <Show when={subagents.error() && subagents.items().length === 0}>
+              <div class="py-10 text-center text-12-regular text-text-weak">
+                {localeText(locale(), "Falha ao carregar subagentes.", "Failed to load subagents.")}
+              </div>
+            </Show>
+
+            <Show when={!subagents.error() && !subagents.loading() && subagents.items().length === 0}>
               <div class="py-10 text-center text-12-regular text-text-weak">
                 {localeText(locale(), "Nenhum subagente nesta sessão.", "No subagents in this session.")}
               </div>
@@ -218,7 +224,7 @@ export function SessionSubagentsTab() {
               </div>
               <div class="shrink-0 text-right text-11-regular text-text-weak">
                 <div>{usd(locale(), session().cost ?? 0)}</div>
-                <div>{compactNumber(locale(), session().tokens ? session().tokens!.input + session().tokens!.output + session().tokens!.reasoning + session().tokens!.cache.read + session().tokens!.cache.write : 0)} tok</div>
+                <div>{compactNumber(locale(), sessionTokenTotal(session().tokens))} tok</div>
               </div>
             </div>
           </div>
