@@ -29,6 +29,42 @@ export function sessionModelLabel(session: Session) {
   return session.model.variant ? `${session.model.id} · ${session.model.variant}` : session.model.id
 }
 
+export function buildSessionSubagents(
+  root: string,
+  sessions: readonly Session[],
+  statuses: Readonly<Record<string, SessionStatus | undefined>>,
+  directory: string,
+): SessionSubagent[] {
+  const children = new Map<string, Session[]>()
+
+  for (const session of sessions) {
+    if (!session.parentID || session.directory !== directory) continue
+    const bucket = children.get(session.parentID)
+    if (bucket) bucket.push(session)
+    else children.set(session.parentID, [session])
+  }
+
+  const output: SessionSubagent[] = []
+  const seen = new Set<string>([root])
+  const visit = (parentID: string, depth: number) => {
+    const direct = (children.get(parentID) ?? []).slice().sort((a, b) => a.time.created - b.time.created)
+    for (const session of direct) {
+      if (seen.has(session.id)) continue
+      seen.add(session.id)
+      output.push({
+        session,
+        depth,
+        status: statuses[session.id]?.type ?? "idle",
+        tokens: sessionTokenTotal(session.tokens),
+      })
+      visit(session.id, depth + 1)
+    }
+  }
+
+  visit(root, 0)
+  return output
+}
+
 export function createSessionSubagents(rootID: () => string | undefined) {
   const sdk = useSDK()
   const serverSDK = useServerSDK()
@@ -93,36 +129,8 @@ export function createSessionSubagents(rootID: () => string | undefined) {
   const items = createMemo<SessionSubagent[]>(() => {
     const root = rootID()
     if (!root) return []
-
-    const info = serverSync().session.data.info
-    const children = new Map<string, Session[]>()
-
-    for (const session of Object.values(info)) {
-      if (!session?.parentID || session.directory !== sdk().directory) continue
-      const bucket = children.get(session.parentID)
-      if (bucket) bucket.push(session)
-      else children.set(session.parentID, [session])
-    }
-
-    const output: SessionSubagent[] = []
-    const seen = new Set<string>([root])
-    const visit = (parentID: string, depth: number) => {
-      const direct = (children.get(parentID) ?? []).slice().sort((a, b) => a.time.created - b.time.created)
-      for (const session of direct) {
-        if (seen.has(session.id)) continue
-        seen.add(session.id)
-        output.push({
-          session,
-          depth,
-          status: serverSync().session.data.session_status[session.id]?.type ?? "idle",
-          tokens: sessionTokenTotal(session.tokens),
-        })
-        visit(session.id, depth + 1)
-      }
-    }
-
-    visit(root, 0)
-    return output
+    const sessions = Object.values(serverSync().session.data.info).filter((session): session is Session => !!session)
+    return buildSessionSubagents(root, sessions, serverSync().session.data.session_status, sdk().directory)
   })
 
   const totalCost = createMemo(() => items().reduce((sum, item) => sum + (item.session.cost ?? 0), 0))
