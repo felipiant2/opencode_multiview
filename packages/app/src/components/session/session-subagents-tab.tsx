@@ -2,7 +2,6 @@ import type { Message, Part, Session } from "@opencode-ai/sdk/v2/client"
 import { For, Show, createEffect, createMemo, createSignal, on } from "solid-js"
 import { Markdown } from "@opencode-ai/session-ui/markdown"
 import { ScrollView } from "@opencode-ai/ui/scroll-view"
-import { Icon } from "@opencode-ai/ui/icon"
 import { useLanguage } from "@/context/language"
 import { useServerSync } from "@/context/server-sync"
 import { useSessionLayout } from "@/pages/session/session-layout"
@@ -52,7 +51,6 @@ function ToolPartView(props: { part: Extract<Part, { type: "tool" }> }) {
   return (
     <div class="rounded-md border border-border-base bg-surface-base px-3 py-2 flex flex-col gap-1.5">
       <div class="flex items-center gap-2 text-12-medium text-text-strong">
-        <Icon name="tools" size="small" />
         <span>{props.part.tool}</span>
         <span class="ml-auto text-11-regular text-text-weak">{state().status}</span>
       </div>
@@ -206,7 +204,7 @@ export function SessionSubagentsTab() {
               class="mb-2 flex items-center gap-1 text-11-regular text-text-weak hover:text-text-base"
               onClick={() => setSelectedID(undefined)}
             >
-              <Icon name="chevron-left" size="small" />
+              <span aria-hidden>‹</span>
               {localeText(locale(), "Todos os subagentes", "All subagents")}
             </button>
             <div class="flex items-start justify-between gap-3">
