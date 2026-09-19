@@ -140,6 +140,16 @@ export function SessionContextTab() {
       }),
   )
 
+  const preciseUsd = createMemo(
+    () =>
+      new Intl.NumberFormat(language.intl(), {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6,
+      }),
+  )
+
   const ctx = createMemo(() => getSessionContext(messages(), [...providers.all().values()]))
   const formatter = createMemo(() => createSessionContextFormatter(language.intl()))
 
@@ -322,7 +332,7 @@ export function SessionContextTab() {
               <div class="text-12-regular text-text-weak">
                 {language.locale() === "br" ? "Subagentes" : "Subagents"}
               </div>
-              <div class="text-12-medium text-text-strong">{usd().format(subagents.totalCost())}</div>
+              <div class="text-12-medium text-text-strong">{preciseUsd().format(subagents.totalCost())}</div>
             </div>
             <div class="rounded-md border border-border-base overflow-hidden">
               <For each={subagents.items()}>
@@ -340,7 +350,7 @@ export function SessionContextTab() {
                       </div>
                     </div>
                     <div class="shrink-0 text-12-medium text-text-strong">
-                      {usd().format(item.session.cost ?? 0)}
+                      {preciseUsd().format(item.session.cost ?? 0)}
                     </div>
                   </div>
                 )}
