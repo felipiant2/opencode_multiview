@@ -167,6 +167,28 @@ describe("createSessionTabs", () => {
     })
   })
 
+  test("activates Subagents without treating it as a file tab", () => {
+    createRoot((dispose) => {
+      const [state] = createStore({
+        active: "subagents" as string | undefined,
+        all: ["subagents", "file://src/a.ts"],
+      })
+      const tabs = createMemo(() => ({ active: () => state.active, all: () => state.all }))
+      const result = createSessionTabs({
+        tabs,
+        pathFromTab: (tab) => (tab.startsWith("file://") ? tab.slice("file://".length) : undefined),
+        normalizeTab: (tab) => tab,
+      })
+
+      expect(result.subagentsOpen()).toBe(true)
+      expect(result.activeTab()).toBe("subagents")
+      expect(result.activeFileTab()).toBeUndefined()
+      expect(result.closableTab()).toBe("subagents")
+      expect(result.panelTabs()).toEqual(["file://src/a.ts"])
+      dispose()
+    })
+  })
+
   test("exposes the Open File tab without treating it as a file tab", () => {
     createRoot((dispose) => {
       const [state] = createStore({
