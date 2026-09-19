@@ -21,6 +21,7 @@ import { useSessionLayout } from "@/pages/session/session-layout"
 import { getSessionContext } from "./session-context-metrics"
 import { estimateSessionContextBreakdown, type SessionContextBreakdownKey } from "./session-context-breakdown"
 import { createSessionContextFormatter } from "./session-context-format"
+import { createSessionSubagents, sessionModelLabel } from "@/pages/session/subagents"
 
 const BREAKDOWN_COLOR: Record<SessionContextBreakdownKey, string> = {
   system: "var(--syntax-info)",
@@ -100,6 +101,7 @@ export function SessionContextTab() {
   const sdk = useSDK()
   const providers = useProviders(() => sdk().directory)
   const { params, view } = useSessionLayout()
+  const subagents = createSessionSubagents(() => params.id)
 
   const info = createMemo(() => (params.id ? sync().session.get(params.id) : undefined))
 
@@ -135,6 +137,16 @@ export function SessionContextTab() {
       new Intl.NumberFormat(language.intl(), {
         style: "currency",
         currency: "USD",
+      }),
+  )
+
+  const preciseUsd = createMemo(
+    () =>
+      new Intl.NumberFormat(language.intl(), {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6,
       }),
   )
 
@@ -313,6 +325,39 @@ export function SessionContextTab() {
             {(stat) => <Stat label={language.t(stat.label as Parameters<typeof language.t>[0])} value={stat.value()} />}
           </For>
         </div>
+
+        <Show when={subagents.items().length > 0}>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between gap-3">
+              <div class="text-12-regular text-text-weak">
+                {language.locale() === "br" ? "Subagentes" : "Subagents"}
+              </div>
+              <div class="text-12-medium text-text-strong">{preciseUsd().format(subagents.totalCost())}</div>
+            </div>
+            <div class="rounded-md border border-border-base overflow-hidden">
+              <For each={subagents.items()}>
+                {(item) => (
+                  <div
+                    class="flex items-center gap-3 px-3 py-2 border-b last:border-b-0 border-border-weaker-base"
+                    style={{ "padding-left": `${12 + Math.min(item.depth, 4) * 14}px` }}
+                  >
+                    <div class="min-w-0 flex-1">
+                      <div class="truncate text-12-medium text-text-strong">
+                        {item.session.agent ?? item.session.title}
+                      </div>
+                      <div class="truncate text-11-regular text-text-weak">
+                        {sessionModelLabel(item.session)} · {formatter().number(item.tokens)} tokens
+                      </div>
+                    </div>
+                    <div class="shrink-0 text-12-medium text-text-strong">
+                      {preciseUsd().format(item.session.cost ?? 0)}
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Show>
 
         <Show when={breakdown().length > 0}>
           <div class="flex flex-col gap-2">

@@ -63,6 +63,12 @@ describe("openSessionTab", () => {
     )
   })
 
+  test("opens Subagents as a pinned utility tab", () => {
+    expect(openSessionTab(state(["context"], "context"), "subagents")).toEqual(
+      state(["subagents", "context"], "subagents"),
+    )
+  })
+
   test("replaces a restored Open File placeholder with a direct open", () => {
     expect(openSessionTab(state(["file://a.ts", SESSION_OPEN_FILE_TAB], SESSION_OPEN_FILE_TAB), "file://b.ts")).toEqual(
       state(["file://a.ts", "file://b.ts"], "file://b.ts"),

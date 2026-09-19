@@ -146,7 +146,7 @@ export function SessionHeader() {
   const settings = useSettings()
   const sync = useSync()
   const terminal = useTerminal()
-  const { params, view } = useSessionLayout()
+  const { params, view, tabs } = useSessionLayout()
 
   const projectDirectory = createMemo(() => decode64(params.dir) ?? "")
   const project = createMemo(() => {
@@ -234,6 +234,18 @@ export function SessionHeader() {
   const tint = createMemo(() =>
     messageAgentColor(params.id ? sync().data.message[params.id] : undefined, sync().data.agent),
   )
+  const subagentsOpened = createMemo(
+    () => view().reviewPanel.opened() && tabs().active() === "subagents",
+  )
+  const toggleSubagents = () => {
+    if (subagentsOpened()) {
+      view().reviewPanel.close()
+      return
+    }
+    view().reviewPanel.open()
+    void tabs().open("subagents")
+    tabs().setActive("subagents")
+  }
   const v2ActionsState = createMemo<SessionHeaderV2ActionsState>(() => ({
     statusVisible: status(),
     statusLabel: language.t("status.popover.trigger"),
@@ -242,6 +254,10 @@ export function SessionHeader() {
     reviewVisible: isDesktop(),
     reviewOpened: view().reviewPanel.opened(),
     onReviewToggle: () => view().reviewPanel.toggle(),
+    subagentsLabel: language.locale() === "br" ? "Subagentes" : "Subagents",
+    subagentsVisible: isDesktop() && !!params.id,
+    subagentsOpened: subagentsOpened(),
+    onSubagentsToggle: toggleSubagents,
   }))
 
   const selectApp = (app: OpenApp) => {
@@ -478,6 +494,22 @@ export function SessionHeader() {
                         </Button>
                       </TooltipKeybind>
 
+                      <Tooltip
+                        placement="bottom"
+                        value={language.locale() === "br" ? "Subagentes" : "Subagents"}
+                      >
+                        <Button
+                          variant="ghost"
+                          class="titlebar-icon w-8 h-6 p-0 box-border"
+                          onClick={toggleSubagents}
+                          aria-label={language.locale() === "br" ? "Subagentes" : "Subagents"}
+                          aria-expanded={subagentsOpened()}
+                          aria-controls="review-panel"
+                        >
+                          <span class="text-11-medium">A</span>
+                        </Button>
+                      </Tooltip>
+
                       <TooltipKeybind
                         title={language.t("command.fileTree.toggle")}
                         keybind={command.keybind("fileTree.toggle")}
@@ -524,6 +556,10 @@ type SessionHeaderV2ActionsState = {
   reviewVisible: boolean
   reviewOpened: boolean
   onReviewToggle: () => void
+  subagentsLabel: string
+  subagentsVisible: boolean
+  subagentsOpened: boolean
+  onSubagentsToggle: () => void
 }
 
 function SessionHeaderV2Actions(props: { state: SessionHeaderV2ActionsState }) {
@@ -535,6 +571,22 @@ function SessionHeaderV2Actions(props: { state: SessionHeaderV2ActionsState }) {
         <Tooltip placement="bottom" value={props.state.statusLabel}>
           <StatusPopoverV2 />
         </Tooltip>
+      </Show>
+      <Show when={props.state.subagentsVisible}>
+        <TooltipV2 class="shrink-0" placement="bottom" value={props.state.subagentsLabel}>
+          <IconButtonV2
+            type="button"
+            variant="ghost-muted"
+            size="large"
+            class="!w-9 shrink-0"
+            state={props.state.subagentsOpened ? "pressed" : undefined}
+            onClick={props.state.onSubagentsToggle}
+            aria-label={props.state.subagentsLabel}
+            aria-expanded={props.state.subagentsOpened}
+            aria-controls="review-panel"
+            icon={<span class="text-11-medium">A</span>}
+          />
+        </TooltipV2>
       </Show>
       <Show when={props.state.reviewVisible}>
         <TooltipV2
