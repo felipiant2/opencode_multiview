@@ -20,7 +20,8 @@ import { useSDK } from "@/context/sdk"
 import { useSessionLayout } from "@/pages/session/session-layout"
 import { getSessionContext } from "./session-context-metrics"
 import { estimateSessionContextBreakdown, type SessionContextBreakdownKey } from "./session-context-breakdown"
-import { createSessionContextFormatter } from "./session-context-format"\nimport { createSessionSubagents, sessionModelLabel } from "@/pages/session/subagents"
+import { createSessionContextFormatter } from "./session-context-format"
+import { createSessionSubagents, sessionModelLabel } from "@/pages/session/subagents"
 
 const BREAKDOWN_COLOR: Record<SessionContextBreakdownKey, string> = {
   system: "var(--syntax-info)",
@@ -99,7 +100,8 @@ export function SessionContextTab() {
   const language = useLanguage()
   const sdk = useSDK()
   const providers = useProviders(() => sdk().directory)
-  const { params, view } = useSessionLayout()\n  const subagents = createSessionSubagents(() => params.id)
+  const { params, view } = useSessionLayout()
+  const subagents = createSessionSubagents(() => params.id)
 
   const info = createMemo(() => (params.id ? sync().session.get(params.id) : undefined))
 
